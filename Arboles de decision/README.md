@@ -1,81 +1,79 @@
-# Clasificación con Árbol de Decisión — Wine Dataset
+# Práctica: Árbol de Decisión con el Wine Dataset
 
-## Qué hace este proyecto
-`modelo.py` carga el dataset de vinos de scikit-learn, separa los datos en
-entrenamiento (80%) y prueba (20%), entrena un árbol de decisión con
-`max_depth=2` y muestra la precisión y las reglas que aprendió.
+## De qué trata
+Para esta práctica usé el dataset de vinos que ya viene incluido en
+scikit-learn (`load_wine`). Tiene 178 vinos con 13 características
+químicas cada uno (alcohol, ácido málico, flavonoides, etc.) y están
+clasificados en 3 tipos según la región donde se cultivaron.
 
-`experimento_max_depth.py` corre el mismo proceso pero probando distintos
-valores de `max_depth` (1, 2, 3, 4, 5, 6 y sin límite) para comparar cómo
-cambia el árbol.
+El objetivo era entrenar un árbol de decisión que aprendiera a
+clasificar el tipo de vino a partir de esas características, y luego
+ver qué tanto cambia el modelo si le doy más o menos "libertad" para
+hacer preguntas (max_depth).
 
-## Resultados obtenidos
+## Qué hice
+1. Cargué el dataset y lo dividí en 80% para entrenar y 20% para
+   probar el modelo con datos que nunca vio.
+2. Entrené un primer árbol con `max_depth=2` (o sea, solo dejándolo
+   hacer 2 preguntas seguidas como máximo).
+3. Medí qué tan bien clasificó los vinos de prueba.
+4. Repetí el entrenamiento probando distintos valores de max_depth
+   (1, 2, 3, 4, 5, 6 y sin límite) para comparar.
+
+## Resultados
 
 | max_depth | profundidad real | hojas | precisión |
 |-----------|------------------|-------|-----------|
-| 1         | 1                | 2     | 0.6667    |
-| 2         | 2                | 4     | 0.8611    |
-| 3         | 3                | 6     | 0.9444    |
-| 4         | 4                | 7     | 0.9444    |
-| 5         | 4                | 7     | 0.9444    |
-| 6         | 4                | 7     | 0.9444    |
-| None      | 4                | 7     | 0.9444    |
+| 1         | 1                | 2     | 66.67%    |
+| 2         | 2                | 4     | 86.11%    |
+| 3         | 3                | 6     | 94.44%    |
+| 4         | 4                | 7     | 94.44%    |
+| 5         | 4                | 7     | 94.44%    |
+| 6         | 4                | 7     | 94.44%    |
+| Sin límite| 4                | 7     | 94.44%    |
 
-### Sobre el cambio de max_depth
-Con `max_depth=2` el árbol solo alcanza el 86.11% de precisión porque le
-faltan divisiones: agrupa varios vinos distintos en la misma hoja. Al
-subir a `max_depth=3` la precisión sube a 94.44% porque el árbol puede
-hacer una pregunta más para separar casos que antes se confundían. De
-ahí en adelante (4, 5, 6 e incluso sin límite) el árbol deja de crecer
-por sí solo en la profundidad 4, con 7 hojas: no hay más separaciones
-útiles que hacer con estos datos, así que aumentar el límite no cambia
-nada. La profundidad máxima real que este árbol necesita es 4.
+Con `max_depth=2` el árbol apenas alcanza el 86.11% de precisión,
+porque le faltan preguntas para separar bien los casos más difíciles.
+Al dejarlo llegar a 3 niveles sube a 94.44%, que fue lo máximo que se
+pudo sacar. De ahí para arriba (4, 5, 6, o sin poner límite) ya no
+mejora nada, porque el árbol se detiene solo en la profundidad 4:
+ya no encuentra más divisiones que le sirvan.
 
-### Sobre entrenar sin límite (max_depth=None)
-La diferencia es que el árbol ya no se detiene por una regla externa,
-sino que crece hasta que cada hoja queda "pura" o hasta que ya no puede
-dividir más un grupo. En este dataset ese punto natural es la
-profundidad 4, exactamente igual que si se hubiera puesto
-`max_depth=4` a mano. Las reglas que aparecen son las mismas, solo que
-se generan sin que nosotros forcemos el tope. Esto muestra que el Wine
-dataset es "fácil" de separar: no hace falta un árbol enorme para
-clasificarlo bien.
+## Qué pasó al entrenar sin límite (max_depth=None)
+Pensé que sin límite el árbol iba a crecer muchísimo más, pero no fue
+así. Llegó exactamente a la misma profundidad (4) y sacó la misma
+precisión que si le hubiera puesto `max_depth=4` a mano. Lo que
+entendí de esto es que el árbol no crece "porque sí" hasta el
+infinito, se detiene solo cuando ya no hay forma de separar mejor los
+datos que le quedan. Esto también me dice que el dataset de vinos es
+bastante "fácil" de clasificar, no hace falta un árbol gigante.
 
-## Evaluación de la precisión
-El mejor resultado en los datos de prueba fue **94.44%** de precisión,
-alcanzado desde `max_depth=3` en adelante. Con solo 2 niveles de
-profundidad el modelo ya funciona razonablemente bien (86.11%), lo cual
-confirma que unas pocas características (como `color_intensity`,
-`proline` y `flavanoids`) ya cargan casi toda la información necesaria
-para distinguir los tres tipos de vino.
+## Mi opinión sobre los resultados
+Me pareció que el modelo funcionó bien desde muy pocos niveles de
+profundidad, lo cual creo que se debe más a que el dataset está muy
+bien organizado (sin datos faltantes, y con clases que sí se
+diferencian bastante entre sí) que a que el algoritmo sea
+especialmente poderoso. Con solo 3 niveles ya se logra casi el
+máximo posible.
 
-## Opinión sobre los resultados
-El modelo funciona muy bien con este dataset, y no hace falta un árbol
-complicado para lograrlo: con 3 o 4 niveles ya se llega al máximo de
-precisión posible aquí. Eso dice mucho más del dataset que del
-algoritmo: son datos limpios, ya medidos en laboratorio y bien
-diferenciados entre clases.
+## ¿El dataset sirve para usarse con un árbol de decisión?
+Yo creo que sí. Un árbol de decisión funciona mejor cuando hay
+variables numéricas que marcan diferencias claras entre las clases,
+y en este caso eso se cumple: variables como `color_intensity`,
+`proline` y `flavanoids` separan bastante bien los tres tipos de
+vino, como se ve en las reglas que generó el árbol. Además no hay
+datos faltantes y las tres clases tienen una cantidad razonable de
+ejemplos cada una, así que no está sesgado hacia un solo tipo.
 
-## ¿El dataset cumple los requisitos para usarse con un árbol de decisión?
-**Sí.** Un árbol de decisión funciona bien cuando las clases se pueden
-separar con cortes claros sobre variables numéricas, y eso es justo lo
-que pasa aquí: variables como `color_intensity`, `flavanoids` y
-`proline` marcan diferencias bastante nítidas entre los tres tipos de
-vino, como se ve en las reglas generadas. Además el dataset no tiene
-valores faltantes y las clases están razonablemente balanceadas, lo
-cual también ayuda a que el árbol no se sesgue hacia un solo tipo de
-vino.
+**Características que me parecieron más importantes:**
+- `color_intensity`: es la primera pregunta que usa el árbol siempre,
+  así que es la que más ayuda a separar.
+- `proline`: aparece varias veces para distinguir vinos que ya se
+  parecen en color.
+- `flavanoids`: separa muy bien uno de los tres tipos de vino del
+  resto.
 
-### Características fundamentales
-- **color_intensity**: es la primera pregunta que usa el árbol en
-  todos los casos, así que es la que más separa a los vinos.
-- **proline**: aparece varias veces y ayuda a distinguir entre los
-  vinos que ya comparten un color de intensidad parecido.
-- **flavanoids**: separa claramente uno de los tres tipos de vino
-  (clase 2) del resto.
-
-¿Agregaría otras características? Con la precisión ya en 94.44% no
-haría falta más para este ejercicio, pero en un caso real sí valdría
-la pena añadir datos como la región exacta del cultivo, el año de
-cosecha o el tipo de suelo, ya que eso podría ayudar a distinguir
-mejor entre subtipos dentro de una misma clase.
+¿Agregaría más características? Con 94.44% de precisión ya no creo
+que hiciera falta para esta práctica, pero si fuera un caso real sí
+podría ayudar agregar cosas como la región exacta del cultivo o el
+año de cosecha, para distinguir mejor entre vinos muy parecidos.
